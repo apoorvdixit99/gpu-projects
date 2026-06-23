@@ -1,0 +1,6 @@
+variant,N,latency_ms_mean,latency_ms_std,latency_ms_p50,latency_ms_p95,gflops,speedup_vs_numpy
+numpy,256,0.3699,0.0,0.3699,0.3699,90.72,1.0
+torch_cpu,256,0.0521,0.0,0.0521,0.0521,643.79,7.1
+cuda_naive,256,0.0497,0.0039,0.0489,0.0553,675.54,7.45
+cuda_tiled,256,0.0462,0.0063,0.0461,0.0539,725.96,8.0
+cublas,256,0.0341,0.0102,0.0317,0.0462,983.84,10.85

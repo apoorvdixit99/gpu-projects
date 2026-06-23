@@ -1,0 +1,2 @@
+server,p50_ms,p95_ms,mean_ms,throughput_rps,gpu_util_pct
+fastapi,256.7313374997866,268.63121795013285,257.2045145999982,3.89,38.2

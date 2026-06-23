@@ -1,0 +1,48 @@
+# Shared virtual environment for all the projects.
+# Run setup.ps1 from this directory to install everything.
+#
+# NOTE: PyTorch must be installed separately with the CUDA 12.6 wheel.
+#       setup.ps1 handles this automatically.
+
+# ── Project 1: LLM Inference Optimization ────────────────────────────────────
+
+# Core ML
+transformers>=4.40.0
+accelerate>=0.30.0
+
+# ONNX
+onnx>=1.16.0
+onnxruntime-gpu<1.21.0
+onnxscript>=0.1.0
+
+# TensorRT - installed explicitly in setup.ps1 from NVIDIA's PyPI.
+# The standard PyPI 'tensorrt' package bundles its own CUDA runtime which may
+# be newer than your driver supports (error 35). Use the CUDA-version-specific
+# package from pypi.nvidia.com instead.
+#   pip install tensorrt-cu12 --extra-index-url https://pypi.nvidia.com
+
+# Data / plotting
+pandas>=2.0.0
+matplotlib>=3.8.0
+numpy>=1.24.0
+
+# Utilities
+tqdm>=4.66.0
+nvidia-ml-py>=12.0.0
+
+# ── Project 3: GPU Profiling & Bottleneck Analysis ───────────────────────────
+# No additional pip dependencies — uses torch.profiler (built into PyTorch) and
+# Nsight Systems / Nsight Compute (system-level tools, not pip packages).
+
+# ── Project 4: Quantization & Precision Optimization ─────────────────────────
+
+# Quantization
+optimum-quanto>=0.2.0
+
+# ── Project 5: Deep Learning Workload Performance Analysis ────────────────────
+
+# FLOPs counting (used for ResNet-50; transformers use analytical formula)
+torchinfo>=1.8.0
+
+# Vision models
+torchvision>=0.20.0

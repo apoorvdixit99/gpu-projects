@@ -1,0 +1,6 @@
+# Project 4: Quantization & Precision Optimization
+# All packages available in the shared .venv (see Nvidia/requirements.txt).
+# Only project-specific additions are listed here.
+
+# Quantization
+optimum-quanto>=0.2.0

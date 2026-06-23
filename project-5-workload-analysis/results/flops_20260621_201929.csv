@@ -1,0 +1,5 @@
+model,label,modality,params_m,macs_g,flops_g
+gpt2,GPT-2 (124M),nlp,124.44,16.114,32.228
+distilgpt2,DistilGPT-2 (82M),nlp,81.91,10.527,21.055
+bert_base,BERT-base (110M),nlp,109.48,11.174,22.348
+resnet50,ResNet-50 (25M),vision,25.56,4.089,8.178

@@ -1,0 +1,2 @@
+server,p50_ms,p95_ms,mean_ms,throughput_rps,gpu_util_pct
+vllm,85.00802999878943,93.84270540231228,86.44729425963305,11.56,62.2

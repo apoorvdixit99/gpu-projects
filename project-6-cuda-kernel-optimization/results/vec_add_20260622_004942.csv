@@ -1,0 +1,6 @@
+variant,N,latency_ms_mean,latency_ms_std,latency_ms_p50,latency_ms_p95,bandwidth_gb_s,speedup_vs_numpy
+numpy,1048576,0.8218,0.0,0.8218,0.8218,15.31,1.0
+torch_cpu,1048576,0.0966,0.0,0.0966,0.0966,130.31,8.51
+cuda_naive,1048576,0.0258,0.0075,0.0246,0.0371,488.47,31.9
+cuda_opt,1048576,0.02,0.0102,0.0164,0.0356,628.14,41.03
+torch_add_gpu,1048576,0.02,0.0116,0.0133,0.0378,628.94,41.08

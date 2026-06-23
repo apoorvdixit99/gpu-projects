@@ -1,0 +1,34 @@
+# Virtual environments
+.venv/
+.venv2/
+
+# Python cache (matched at any depth)
+__pycache__/
+*.pyc
+*.pyo
+
+# Generated model artifacts (matched at any depth)
+models/
+*.onnx
+*.trt
+*.engine
+
+# Docker build cache
+*.tar
+
+# CUDA extension build artifacts
+build/
+*.so
+*.pyd
+
+# Nsight reports
+*.nsys-rep
+*.ncu-rep
+
+# HuggingFace model cache
+.cache/
+
+# Claude Code
+.claude/
+
+.DS_Store

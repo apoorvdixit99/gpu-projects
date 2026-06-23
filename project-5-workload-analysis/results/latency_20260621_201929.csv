@@ -1,0 +1,21 @@
+model,label,modality,batch_size,latency_ms_mean,latency_ms_std,latency_ms_p50,latency_ms_p95,latency_ms_p99,throughput,throughput_unit,mfu_pct
+gpt2,GPT-2 (124M),nlp,1,5.032,1.701,4.095,8.257,8.329,25435,tok/s,8.61
+gpt2,GPT-2 (124M),nlp,4,5.648,1.297,4.949,7.957,8.052,90659,tok/s,30.68
+gpt2,GPT-2 (124M),nlp,8,9.609,0.167,9.612,9.935,10.002,106569,tok/s,36.06
+gpt2,GPT-2 (124M),nlp,16,19.517,0.498,19.293,20.374,20.753,104936,tok/s,35.51
+gpt2,GPT-2 (124M),nlp,32,39.824,1.572,39.647,41.995,42.626,102852,tok/s,34.81
+distilgpt2,DistilGPT-2 (82M),nlp,1,2.711,0.342,2.668,2.837,4.132,47217,tok/s,10.44
+distilgpt2,DistilGPT-2 (82M),nlp,4,3.187,0.31,3.105,3.654,4.44,160669,tok/s,35.52
+distilgpt2,DistilGPT-2 (82M),nlp,8,5.802,0.162,5.78,5.956,6.39,176502,tok/s,39.02
+distilgpt2,DistilGPT-2 (82M),nlp,16,11.954,0.315,12.076,12.303,12.474,171326,tok/s,37.88
+distilgpt2,DistilGPT-2 (82M),nlp,32,26.04,0.249,26.091,26.352,26.583,157295,tok/s,34.78
+bert_base,BERT-base (110M),nlp,1,4.579,0.193,4.615,4.833,5.058,27954,tok/s,6.56
+bert_base,BERT-base (110M),nlp,4,4.542,0.335,4.434,5.15,5.712,112734,tok/s,26.46
+bert_base,BERT-base (110M),nlp,8,6.603,0.182,6.54,6.948,7.208,155083,tok/s,36.39
+bert_base,BERT-base (110M),nlp,16,13.612,0.247,13.678,13.916,14.093,150451,tok/s,35.31
+bert_base,BERT-base (110M),nlp,32,27.443,0.455,27.484,28.167,28.228,149257,tok/s,35.03
+resnet50,ResNet-50 (25M),vision,1,4.289,0.323,4.174,4.798,5.114,233,img/s,2.56
+resnet50,ResNet-50 (25M),vision,4,4.149,0.392,4.01,4.984,5.188,964,img/s,10.6
+resnet50,ResNet-50 (25M),vision,8,4.584,0.278,4.558,4.977,5.145,1745,img/s,19.19
+resnet50,ResNet-50 (25M),vision,16,8.614,0.166,8.6,8.845,8.904,1857,img/s,20.42
+resnet50,ResNet-50 (25M),vision,32,18.067,0.258,18.0,18.543,18.625,1771,img/s,19.47

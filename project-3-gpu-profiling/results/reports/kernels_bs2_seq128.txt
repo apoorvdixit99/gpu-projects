@@ -1,0 +1,13 @@
+batch_size=2  seq_len=128
+Kernel                                                     CUDA ms     CPU ms   Calls   %CUDA
+-------------------------------------------------------------------------------------------
+  aten::addmm                                                4.416      3.245     144   19.4%
+  ampere_fp16_s16816gemm_fp16_128x128_ldg8_relu_f2f_stages_32x5_nn      2.662      0.000      72   11.7%
+  aten::linear                                               2.035      0.177       3    9.0%
+  aten::matmul                                               2.035      0.150       3    9.0%
+  aten::mm                                                   2.035      0.119       3    9.0%
+  _ZN7cutlass7Kernel2I55cutlass_75_tensorop_f16_s1688gemm_f16_128x256_tn_align1EEvNT_6ParamsE      2.035      0.000       3    9.0%
+  ampere_fp16_s16816gemm_fp16_64x64_ldg8_relu_f2f_stages_64x5_nn      1.754      0.000      72    7.7%
+  aten::mul                                                  0.613      1.937     144    2.7%
+  aten::add                                                  0.535      2.366     150    2.4%
+  _ZN2at6native29vectorized_elementwise_kernelILi4ENS0_13AUnaryFunctorIN3c104HalfES4_S4_NS0_15binary_internal10MulFunctorIfEEEESt5arrayIPcLy2EEEEviT0_T1_      0.431      0.000     108    1.9%

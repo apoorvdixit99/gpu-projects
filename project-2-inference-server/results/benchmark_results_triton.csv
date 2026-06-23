@@ -1,0 +1,2 @@
+server,p50_ms,p95_ms,mean_ms,throughput_rps,gpu_util_pct
+triton,258.7525844992342,268.41522789982264,259.90953685985005,3.85,38.1

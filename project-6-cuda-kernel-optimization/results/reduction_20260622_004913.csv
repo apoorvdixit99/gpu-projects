@@ -1,0 +1,6 @@
+variant,N,latency_ms_mean,latency_ms_std,bandwidth_gb_s,speedup_vs_numpy,latency_ms_p50,latency_ms_p95
+numpy,1048576,0.343,0.0,12.23,1.0,,
+torch_cpu,1048576,0.0241,0.0,173.75,14.21,,
+reduce_naive,1048576,0.0593,0.0042,70.72,5.78,0.0582,0.0649
+reduce_sequential,1048576,0.0403,0.0019,104.14,8.52,0.0396,0.0432
+reduce_shuffle,1048576,0.048,0.0051,87.4,7.15,0.0484,0.0537

@@ -1,0 +1,21 @@
+model,label,modality,batch_size,peak_allocated_mb,peak_reserved_mb,fragmentation_pct
+gpt2,GPT-2 (124M),nlp,1,270.2,608.0,55.6
+gpt2,GPT-2 (124M),nlp,4,307.6,610.0,49.6
+gpt2,GPT-2 (124M),nlp,8,357.5,610.0,41.4
+gpt2,GPT-2 (124M),nlp,16,457.5,808.0,43.4
+gpt2,GPT-2 (124M),nlp,32,656.4,1202.0,45.4
+distilgpt2,DistilGPT-2 (82M),nlp,1,184.7,428.0,56.8
+distilgpt2,DistilGPT-2 (82M),nlp,4,222.1,430.0,48.4
+distilgpt2,DistilGPT-2 (82M),nlp,8,272.7,430.0,36.6
+distilgpt2,DistilGPT-2 (82M),nlp,16,371.6,628.0,40.8
+distilgpt2,DistilGPT-2 (82M),nlp,32,570.9,1022.0,44.1
+bert_base,BERT-base (110M),nlp,1,237.1,522.0,54.6
+bert_base,BERT-base (110M),nlp,4,244.4,526.0,53.5
+bert_base,BERT-base (110M),nlp,8,254.9,526.0,51.5
+bert_base,BERT-base (110M),nlp,16,273.7,526.0,48.0
+bert_base,BERT-base (110M),nlp,32,312.7,526.0,40.5
+resnet50,ResNet-50 (25M),vision,1,67.1,118.0,43.1
+resnet50,ResNet-50 (25M),vision,4,86.0,118.0,27.1
+resnet50,ResNet-50 (25M),vision,8,110.9,152.0,27.0
+resnet50,ResNet-50 (25M),vision,16,161.0,274.0,41.2
+resnet50,ResNet-50 (25M),vision,32,249.4,436.0,42.8
