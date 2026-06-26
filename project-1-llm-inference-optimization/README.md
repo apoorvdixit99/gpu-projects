@@ -28,6 +28,9 @@ Each backend runs a single forward pass (the prefill phase — processing input 
 ### PyTorch FP16
 The reference baseline. GPT-2 loaded from HuggingFace, moved to GPU, and cast to `float16`. Inference runs with `torch.no_grad()` and `use_cache=False` to keep the comparison fair (single forward pass, no KV cache).
 
+### PyTorch FP16 + SDPA
+Same as the baseline but loaded with `attn_implementation="sdpa"`, which routes every attention layer through `torch.nn.functional.scaled_dot_product_attention`. On Ada hardware PyTorch selects Flash Attention, fusing the full QK^T → softmax → V operation into a single memory-efficient kernel. No model export or compilation needed — it's a drop-in swap over the baseline.
+
 ### ONNX Runtime (CUDAExecutionProvider)
 The model is exported to ONNX opset 18 using PyTorch's dynamo-based exporter, then loaded into an ONNX Runtime `InferenceSession` with `CUDAExecutionProvider`. ORT applies its own graph optimizations (op fusion, constant folding) independently of TensorRT.
 

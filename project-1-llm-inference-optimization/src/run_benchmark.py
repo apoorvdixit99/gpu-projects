@@ -35,9 +35,9 @@ def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="GPT-2 Inference Benchmark")
     p.add_argument(
         "--backends", nargs="+",
-        default=["pytorch", "onnx", "tensorrt"],
-        choices=["pytorch", "onnx", "tensorrt"],
-        help="Which backends to benchmark (default: all three)",
+        default=["pytorch", "pytorch_sdpa", "onnx", "tensorrt"],
+        choices=["pytorch", "pytorch_sdpa", "onnx", "tensorrt"],
+        help="Which backends to benchmark (default: all four)",
     )
     p.add_argument("--batch-sizes", nargs="+", type=int, default=[1, 4, 8, 16])
     p.add_argument("--seq-lens",    nargs="+", type=int, default=[64, 128, 256])
@@ -86,6 +86,13 @@ def main() -> None:
     if "pytorch" in args.backends:
         print("\n=== PyTorch Benchmark ===")
         from bench_pytorch import benchmark
+        all_results.extend(
+            benchmark(args.batch_sizes, args.seq_lens, args.fp16, args.warmup, args.iterations)
+        )
+
+    if "pytorch_sdpa" in args.backends:
+        print("\n=== PyTorch SDPA Benchmark ===")
+        from bench_pytorch_sdpa import benchmark
         all_results.extend(
             benchmark(args.batch_sizes, args.seq_lens, args.fp16, args.warmup, args.iterations)
         )

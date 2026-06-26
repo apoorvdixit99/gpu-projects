@@ -30,11 +30,12 @@ source /mnt/c/Users/apoor/Desktop/projects/Nvidia/.venv2/bin/activate
 
 ### [Project 1 — LLM Inference Optimization](project-1-llm-inference-optimization/)
 
-Benchmark GPT-2 (124M) inference across three backends and measure the real-world impact of runtime and precision choices.
+Benchmark GPT-2 (124M) inference across four backends and measure the real-world impact of runtime and precision choices.
 
 | Backend | Precision | Notes |
 |---|---|---|
 | PyTorch | FP16 | Baseline |
+| PyTorch + SDPA | FP16 | Flash Attention via `attn_implementation="sdpa"` |
 | ONNX Runtime | FP16 | CUDAExecutionProvider |
 | TensorRT | FP16 | Compiled engine, dynamic batch |
 
