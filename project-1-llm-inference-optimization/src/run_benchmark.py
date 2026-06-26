@@ -35,9 +35,9 @@ def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="GPT-2 Inference Benchmark")
     p.add_argument(
         "--backends", nargs="+",
-        default=["pytorch", "pytorch_sdpa", "onnx", "tensorrt"],
-        choices=["pytorch", "pytorch_sdpa", "onnx", "tensorrt"],
-        help="Which backends to benchmark (default: all four)",
+        default=["pytorch_fp32", "pytorch", "pytorch_sdpa", "onnx", "tensorrt"],
+        choices=["pytorch_fp32", "pytorch", "pytorch_sdpa", "onnx", "tensorrt"],
+        help="Which backends to benchmark (default: all five)",
     )
     p.add_argument("--batch-sizes", nargs="+", type=int, default=[1, 4, 8, 16])
     p.add_argument("--seq-lens",    nargs="+", type=int, default=[64, 128, 256])
@@ -83,8 +83,15 @@ def main() -> None:
     # ── Benchmarks ───────────────────────────────────────────────────────────
     all_results: list[dict] = []
 
+    if "pytorch_fp32" in args.backends:
+        print("\n=== PyTorch FP32 Benchmark ===")
+        from bench_pytorch import benchmark
+        all_results.extend(
+            benchmark(args.batch_sizes, args.seq_lens, fp16=False, warmup=args.warmup, iterations=args.iterations)
+        )
+
     if "pytorch" in args.backends:
-        print("\n=== PyTorch Benchmark ===")
+        print("\n=== PyTorch FP16 Benchmark ===")
         from bench_pytorch import benchmark
         all_results.extend(
             benchmark(args.batch_sizes, args.seq_lens, args.fp16, args.warmup, args.iterations)

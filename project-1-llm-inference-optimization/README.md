@@ -25,8 +25,11 @@ Each backend runs a single forward pass (the prefill phase — processing input 
 
 ## Backends
 
+### PyTorch FP32
+The true baseline. GPT-2 loaded in full float32 precision — no casting, no optimizations. Sets the upper bound on latency and memory that every other backend is measured against.
+
 ### PyTorch FP16
-The reference baseline. GPT-2 loaded from HuggingFace, moved to GPU, and cast to `float16`. Inference runs with `torch.no_grad()` and `use_cache=False` to keep the comparison fair (single forward pass, no KV cache).
+Same as FP32 but with `model.half()` — all weight tensors cast to float16, routing compute through the tensor core path. The first optimization step and the reference point for the remaining backends.
 
 ### PyTorch FP16 + SDPA
 Same as the baseline but loaded with `attn_implementation="sdpa"`, which routes every attention layer through `torch.nn.functional.scaled_dot_product_attention`. On Ada hardware PyTorch selects Flash Attention, fusing the full QK^T → softmax → V operation into a single memory-efficient kernel. No model export or compilation needed — it's a drop-in swap over the baseline.
