@@ -37,6 +37,7 @@ Benchmark GPT-2 (124M) inference across four backends and measure the real-world
 | PyTorch | FP32 | Baseline |
 | PyTorch | FP16 | Tensor core path |
 | PyTorch + SDPA | FP16 | Flash Attention via `attn_implementation="sdpa"` |
+| PyTorch + torch.compile | FP16 | CUDA graphs via `backend="cudagraphs"` (Triton-free) |
 | ONNX Runtime | FP16 | CUDAExecutionProvider |
 | TensorRT | FP16 | Compiled engine, dynamic batch |
 

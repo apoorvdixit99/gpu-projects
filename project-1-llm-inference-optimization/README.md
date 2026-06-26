@@ -34,6 +34,9 @@ Same as FP32 but with `model.half()` — all weight tensors cast to float16, rou
 ### PyTorch FP16 + SDPA
 Same as the baseline but loaded with `attn_implementation="sdpa"`, which routes every attention layer through `torch.nn.functional.scaled_dot_product_attention`. On Ada hardware PyTorch selects Flash Attention, fusing the full QK^T → softmax → V operation into a single memory-efficient kernel. No model export or compilation needed — it's a drop-in swap over the baseline.
 
+### PyTorch FP16 + torch.compile
+The FP16 model wrapped with `torch.compile(model, backend="cudagraphs")`. TorchDynamo traces the computation graph and captures it as a CUDA graph, which is replayed on every subsequent call — eliminating per-kernel Python launch overhead so the GPU runs a single pre-recorded stream with minimal CPU involvement. The `cudagraphs` backend is used instead of the default `inductor` because Triton is not available on Windows. Graph capture happens on the first forward call for each unique input shape and is absorbed by the warmup loop.
+
 ### ONNX Runtime (CUDAExecutionProvider)
 The model is exported to ONNX opset 18 using PyTorch's dynamo-based exporter, then loaded into an ONNX Runtime `InferenceSession` with `CUDAExecutionProvider`. ORT applies its own graph optimizations (op fusion, constant folding) independently of TensorRT.
 
@@ -49,9 +52,11 @@ project-1-llm-inference-optimization/
 ├── src/
 │   ├── export_onnx.py       Export GPT-2 to ONNX (opset 18, dynamic shapes)
 │   ├── build_trt.py         Compile ONNX → TensorRT engine
-│   ├── bench_pytorch.py     PyTorch FP16 benchmark
-│   ├── bench_onnx.py        ONNX Runtime benchmark
-│   ├── bench_tensorrt.py    TensorRT benchmark
+│   ├── bench_pytorch.py         PyTorch FP32 / FP16 benchmark
+│   ├── bench_pytorch_sdpa.py    PyTorch FP16 + SDPA benchmark
+│   ├── bench_pytorch_compile.py PyTorch FP16 + torch.compile benchmark
+│   ├── bench_onnx.py            ONNX Runtime benchmark
+│   ├── bench_tensorrt.py        TensorRT benchmark
 │   ├── plot_results.py      Generate latency / throughput / memory charts
 │   └── run_benchmark.py     CLI entry point — orchestrates all of the above
 ├── models/                  Generated model files (gitignored)

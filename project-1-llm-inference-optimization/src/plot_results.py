@@ -8,20 +8,24 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 _BACKEND_COLORS = {
-    "pytorch_fp16":      "#76b900",   # NVIDIA green
-    "pytorch_fp32":      "#a8d86e",
-    "pytorch_sdpa_fp16": "#00bcd4",   # cyan
-    "pytorch_sdpa_fp32": "#80deea",
-    "onnxruntime":       "#2196f3",   # blue
-    "tensorrt_fp16":     "#ff5722",   # orange-red
+    "pytorch_fp16":         "#76b900",   # NVIDIA green
+    "pytorch_fp32":         "#a8d86e",
+    "pytorch_sdpa_fp16":    "#00bcd4",   # cyan
+    "pytorch_sdpa_fp32":    "#80deea",
+    "pytorch_compile_fp16": "#9c27b0",   # purple
+    "pytorch_compile_fp32": "#ce93d8",
+    "onnxruntime":          "#2196f3",   # blue
+    "tensorrt_fp16":        "#ff5722",   # orange-red
 }
 _MARKERS = {
-    "pytorch_fp16":      "o",
-    "pytorch_fp32":      "s",
-    "pytorch_sdpa_fp16": "P",
-    "pytorch_sdpa_fp32": "p",
-    "onnxruntime":       "^",
-    "tensorrt_fp16":     "D",
+    "pytorch_fp16":         "o",
+    "pytorch_fp32":         "s",
+    "pytorch_sdpa_fp16":    "P",
+    "pytorch_sdpa_fp32":    "p",
+    "pytorch_compile_fp16": "*",
+    "pytorch_compile_fp32": "h",
+    "onnxruntime":          "^",
+    "tensorrt_fp16":        "D",
 }
 
 

@@ -370,6 +370,61 @@ parser.parse_from_file(onnx_path)
 
 ---
 
+## Issue 17 — `torch.compile` crashes: Triton not available on Windows
+
+**Error**
+```
+torch._inductor.exc.TritonMissing: Cannot find a working triton installation.
+Either the package is not installed or it is too old.
+```
+also preceded by:
+```
+W ... [0/0] Not enough SMs to use max_autotune_gemm mode
+```
+
+**Cause**
+`torch.compile` defaults to the `inductor` backend, which uses Triton to JIT-compile CUDA kernels. Triton has no Windows build; it is Linux-only. Using `mode="reduce-overhead"` also invokes `inductor` under the hood, so the crash is the same regardless of the mode string.
+
+**Fix**
+Switched to `backend="cudagraphs"` in `src/bench_pytorch_compile.py`:
+```python
+# Before:
+model = torch.compile(model, mode="reduce-overhead")
+
+# After:
+model = torch.compile(model, backend="cudagraphs")
+```
+`cudagraphs` records the forward pass as a CUDA graph and replays it on every call, eliminating per-kernel Python launch overhead — the same mechanism `reduce-overhead` was targeting — without requiring Triton.
+
+---
+
+## Issue 18 — `cudagraphs` backend crashes when input shape changes between iterations
+
+**Error**
+```
+RuntimeError: The size of tensor a (128) must match the size of tensor b (256)
+at non-singleton dimension 1
+```
+raised inside `torch._inductor.cudagraph_trees._copy_inputs_and_remove_from_src`.
+
+**Cause**
+CUDA graphs capture a static computation graph tied to a specific input shape. A single `torch.compile(model, backend="cudagraphs")` instance captures the graph on the first warmup call (e.g. `seq_len=128`). When the next `(batch_size, seq_len)` combination is processed, the runtime tries to replay the same graph with different-sized tensors, which fails because the captured kernel bindings have fixed dimensions.
+
+**Fix**
+Reset dynamo state and create a fresh compiled wrapper for each `(batch_size, seq_len)` combination. The base model is loaded once and reused; only the compiled wrapper changes:
+```python
+base = GPT2LMHeadModel.from_pretrained("gpt2").eval().to(device)
+# ...
+for bs in batch_sizes:
+    for seq_len in seq_lens:
+        torch._dynamo.reset()                           # clear previous graphs
+        model = torch.compile(base, backend="cudagraphs")  # fresh wrapper per shape
+        # warmup + timing as normal
+```
+`torch._dynamo.reset()` clears all compiled graph state globally, ensuring the new wrapper captures a fresh graph for the current shape. The warmup loop absorbs the compilation cost.
+
+---
+
 ## Warnings — benign, no fix required
 
 These warnings come from PyTorch internals and do not affect correctness or performance.
