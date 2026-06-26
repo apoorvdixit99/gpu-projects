@@ -1,4 +1,4 @@
-# GPU Engineering Portfolio
+# ML Infrastructure and Systems Engineering Portfolio
 
 A collection of projects demonstrating GPU-accelerated ML inference, optimization, and systems programming.
 
@@ -8,7 +8,7 @@ A collection of projects demonstrating GPU-accelerated ML inference, optimizatio
 
 ## Setup
 
-Projects 1, 3–5 share `.venv`. Project 2 uses a separate `.venv2` (WSL2, Docker). Project 6 uses `.venv`.
+Projects 1, 3–7 share `.venv`. Project 2 uses a separate `.venv2` (WSL2, Docker).
 
 **Projects 1, 3–6 (Windows PowerShell):**
 ```powershell
@@ -198,3 +198,22 @@ python src/run_benchmark.py --no-cpu  # skip CPU baselines (faster)
 ```
 
 Results land in `project-6-cuda-kernel-optimization/results/` as CSV + PNG plots + Nsight reports.
+
+---
+
+### [Project 7 — Micrograd](project-7-micrograd/)
+
+A from-scratch scalar-valued autograd engine and neural network library, following Andrej Karpathy's [micrograd](https://github.com/karpathy/micrograd).
+
+| Component | File | Description |
+|---|---|---|
+| Autograd engine | `src/engine.py` | `Value` — scalar node with `.backward()` via reverse topo sort |
+| Neural net primitives | `src/nn.py` | `Neuron`, `Layer`, `MLP` built entirely from `Value` arithmetic |
+| Walkthrough notebook | `micrograd.ipynb` | Engine derivation, computation graph viz, MLP training loop |
+
+**Skills:** reverse-mode automatic differentiation, computation graph construction, chain rule, manual SGD, scalar backprop
+
+```powershell
+cd project-7-micrograd
+jupyter notebook micrograd.ipynb
+```
