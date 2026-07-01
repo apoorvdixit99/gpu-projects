@@ -32,3 +32,5 @@ build/
 .claude/
 
 .DS_Store
+
+theory/
