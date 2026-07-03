@@ -24,6 +24,8 @@ SERVERS = {
     "fastapi": "http://localhost:8000",
     "vllm":    "http://localhost:8001",
     "triton":  "http://localhost:8002",
+    "sglang":  "http://localhost:8003",
+    "trtllm":  "http://localhost:8004",
 }
 
 
@@ -91,6 +93,33 @@ def call_vllm(client: httpx.Client) -> float:
     return (time.perf_counter() - t0) * 1000
 
 
+def call_sglang(client: httpx.Client) -> float:
+    t0 = time.perf_counter()
+    r = client.post(
+        f"{SERVERS['sglang']}/v1/completions",
+        json={
+            "model": "gpt2",
+            "prompt": PROMPT,
+            "max_tokens": MAX_NEW_TOKENS,
+            "temperature": 0,
+        },
+        timeout=120,
+    )
+    r.raise_for_status()
+    return (time.perf_counter() - t0) * 1000
+
+
+def call_trtllm(client: httpx.Client) -> float:
+    t0 = time.perf_counter()
+    r = client.post(
+        f"{SERVERS['trtllm']}/generate",
+        json={"prompt": PROMPT, "max_new_tokens": MAX_NEW_TOKENS},
+        timeout=120,
+    )
+    r.raise_for_status()
+    return (time.perf_counter() - t0) * 1000
+
+
 def call_triton(triton_client: httpclient.InferenceServerClient) -> float:
     prompt_input = httpclient.InferInput("prompt", [1], "BYTES")
     prompt_input.set_data_from_numpy(
@@ -126,7 +155,7 @@ def run_benchmark(server: str) -> dict:
         http_client = None
     else:
         http_client = httpx.Client()
-        call_fn = call_fastapi if server == "fastapi" else call_vllm
+        call_fn = {"fastapi": call_fastapi, "vllm": call_vllm, "sglang": call_sglang, "trtllm": call_trtllm}[server]
 
     # Warmup
     print(f"  Warmup ({WARMUP_REQUESTS} requests)...")
@@ -175,7 +204,7 @@ def run_benchmark(server: str) -> dict:
 def save_plots(df: pd.DataFrame, out_dir: Path):
     servers = df["server"].tolist()
     x = np.arange(len(servers))
-    colors = ["#4C72B0", "#DD8452", "#55A868"]
+    colors = ["#4C72B0", "#DD8452", "#55A868", "#C44E52", "#8172B3"]
 
     fig, axes = plt.subplots(1, 3, figsize=(14, 5))
     fig.suptitle("LLM Inference Server Benchmark — GPT-2 (FP16)", fontsize=14)
@@ -224,13 +253,13 @@ def main():
     parser = argparse.ArgumentParser(description="LLM serving benchmark")
     parser.add_argument(
         "--server",
-        choices=["fastapi", "vllm", "triton", "all"],
+        choices=["fastapi", "vllm", "triton", "sglang", "trtllm", "all"],
         default="all",
         help="Which server to benchmark",
     )
     args = parser.parse_args()
 
-    targets = ["fastapi", "vllm", "triton"] if args.server == "all" else [args.server]
+    targets = ["fastapi", "vllm", "triton", "sglang", "trtllm"] if args.server == "all" else [args.server]
 
     print(f"\nPrompt        : '{PROMPT}'")
     print(f"Max new tokens: {MAX_NEW_TOKENS}")

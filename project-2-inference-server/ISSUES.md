@@ -194,3 +194,45 @@ Copy the model_repo into the Docker image at build time instead of mounting it a
 COPY model_repo /models
 ```
 And remove the `-v "$MODEL_REPO:/models"` volume mount from `run.sh`. This moves the files onto the Linux container filesystem, eliminating any Windows filesystem mount issues.
+
+---
+
+## Issue 11 — SGLang pip install broke torch (NCCL symbol conflict)
+
+**Error**
+```
+ImportError: .../torch/lib/libtorch_cuda.so: undefined symbol: ncclCommWindowDeregister
+```
+
+**Cause**  
+`pip install "sglang[srt]"` downgraded `nvidia-nccl-cu12` to a version below 2.21. The `torch==2.6.0+cu124` binary was compiled against NCCL 2.21+ and requires `ncclCommWindowDeregister`, which was added in that release. After the downgrade, torch could no longer load.
+
+**Fix**  
+Restore the correct NCCL version, then force-reinstall torch to ensure all its bundled libraries are consistent:
+```bash
+pip install "nvidia-nccl-cu12==2.21.5" --force-reinstall
+pip install "torch==2.6.0+cu124" --extra-index-url https://download.pytorch.org/whl/cu124 --force-reinstall
+```
+
+**Lesson**  
+SGLang and vLLM have conflicting dependency trees when installed into the same venv. Running SGLang in Docker (which it now does) avoids this entirely.
+
+---
+
+## Issue 12 — SGLang Docker image: `python` not found
+
+**Error**
+```
+/opt/nvidia/nvidia_entrypoint.sh: line 55: exec: python: not found
+```
+
+**Cause**  
+The `lmsysorg/sglang:v0.4.6.post1-cu124` image is built on top of the NVIDIA Triton base image, which places the Python interpreter at `python3`, not `python`. The `run.sh` passed `python -m sglang.launch_server` as the Docker command, which the entrypoint script could not resolve.
+
+**Fix**  
+Change `python` to `python3` in `servers/sglang_server/run.sh`:
+```bash
+python3 -m sglang.launch_server \
+    --model-path gpt2 \
+    ...
+```
