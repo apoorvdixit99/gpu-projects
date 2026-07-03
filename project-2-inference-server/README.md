@@ -29,22 +29,20 @@ Single-client sequential benchmark · 5 warmup + 50 measured requests · prompt:
 | FastAPI | 256.7 | 268.6 | 3.89 | 38.2% |
 | Triton | 258.8 | 268.4 | 3.85 | 38.1% |
 | vLLM | 85.0 | 93.8 | 11.56 | 62.2% |
+| TRT-LLM | 84.9 | 89.9 | 11.73 | 75.2% |
 | **SGLang** | **80.1** | **83.6** | **12.43** | **73.6%** |
-| TRT-LLM | — | — | — | — |
 
 ### Key findings
 
-**SGLang is the fastest** at 80ms p50 and 12.43 req/s — edging out vLLM (85ms, 11.56 req/s) by about 7%. The difference is visible in GPU utilization: SGLang keeps the GPU at 73.6% vs vLLM's 62.2%, suggesting its RadixAttention KV cache reuse is squeezing more compute out of each request.
+**SGLang is the fastest** at 80.1ms p50 and 12.43 req/s — edging out TRT-LLM (84.9ms, 11.73 req/s) and vLLM (85.0ms, 11.56 req/s) by roughly 6–7%. Its RadixAttention KV cache reuse keeps GPU utilization at 73.6%.
 
-**vLLM is a close second**, roughly 3× faster than FastAPI and Triton. Both SGLang and vLLM benefit from continuous batching and efficient KV cache management — neither is scheduling idle GPU time between requests the way FastAPI does.
+**TRT-LLM and vLLM are nearly tied**, both landing at ~85ms p50 and ~11.6–11.7 req/s. TRT-LLM has slightly higher GPU utilization (75.2% vs 62.2%), suggesting the compiled TensorRT engine schedules GPU work more efficiently even though throughput is similar. Both are roughly 3× faster than FastAPI and Triton.
 
 **FastAPI ≈ Triton** at ~257ms p50 and ~3.87 req/s. Both process requests one at a time with no batching. The GPU fires for the generation window then sits idle waiting for the next HTTP round-trip, which is why utilization is only 38%.
 
-**GPU utilization is the signal:** 38% (FastAPI/Triton) vs 62% (vLLM) vs 73% (SGLang) tells you how efficiently each framework schedules work onto the GPU.
+**GPU utilization is the signal:** 38% (FastAPI/Triton) → 62% (vLLM) → 75% (TRT-LLM) → 73% (SGLang) — the optimized engines keep the GPU fed between requests while naive servers let it idle.
 
-> Note: single-client sequential benchmark. The gap between optimized engines and naive serving compounds sharply under concurrent load — at 32 clients, vLLM and SGLang's throughput advantage would be far larger.
-
-> TRT-LLM results pending — first run compiles GPT-2 into TRT engines (~2-3 min).
+> Note: single-client sequential benchmark. The gap between optimized engines and naive serving compounds sharply under concurrent load — at 32 clients, the 3× latency advantage becomes a much larger throughput gap.
 
 ---
 

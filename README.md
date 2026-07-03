@@ -59,39 +59,43 @@ Results land in `project-1-llm-inference-optimization/results/` as CSV + PNG plo
 
 ### [Project 2 — High-Throughput LLM Inference Server](project-2-inference-server/)
 
-Benchmark three production-style serving backends for GPT-2 (FP16) on a single GPU, comparing latency, throughput, and GPU utilization.
+Benchmark five production-style serving backends for GPT-2 (FP16) on a single GPU, comparing latency, throughput, and GPU utilization.
 
 | Backend | Description | Port |
 |---|---|---|
 | FastAPI + HuggingFace | Async baseline using `transformers.generate()` | 8000 |
 | vLLM | PagedAttention-based continuous batching (Docker) | 8001 |
 | Triton Inference Server | NVIDIA Triton Python backend (Docker) | 8002 |
+| SGLang | RadixAttention-based inference server (Docker) | 8003 |
+| TensorRT-LLM | Compiled TRT engines via TRT-LLM Python API (Docker) | 8004 |
 
 **Results (single-client sequential · 50 requests · GPT-2 FP16 · 50 new tokens):**
 
-| Server  | p50 (ms) | Throughput (req/s) | GPU Util |
-|---------|----------|--------------------|----------|
-| FastAPI | 256.7    | 3.89               | 38.2%    |
-| vLLM    | **85.0** | **11.56**          | **62.2%**|
-| Triton  | 258.8    | 3.85               | 38.1%    |
+| Server | p50 (ms) | Throughput (req/s) | GPU Util |
+|--------|----------|--------------------|----------|
+| FastAPI | 256.7 | 3.89 | 38.2% |
+| Triton | 258.8 | 3.85 | 38.1% |
+| vLLM | 85.0 | 11.56 | 62.2% |
+| TRT-LLM | 84.9 | 11.73 | 75.2% |
+| **SGLang** | **80.1** | **12.43** | **73.6%** |
 
-**Skills:** FastAPI async serving, vLLM PagedAttention, NVIDIA Triton Python backend, Docker + NVIDIA Container Toolkit, `tritonclient`, HTTP benchmarking
+**Skills:** FastAPI async serving, vLLM PagedAttention, SGLang RadixAttention, NVIDIA Triton Python backend, TensorRT-LLM engine compilation, Docker + NVIDIA Container Toolkit, WSL2 GPU passthrough, `tritonclient`, HTTP benchmarking
 
 ```bash
-# FastAPI
+# FastAPI (venv)
 uvicorn servers.fastapi_hf.server:app --port 8000
 
-# vLLM (Docker)
+# vLLM / SGLang / Triton / TRT-LLM (all Docker)
 bash servers/vllm_server/run.sh
-
-# Triton (Docker, builds custom image on first run)
+bash servers/sglang_server/run.sh
 bash servers/triton_server/run.sh
+bash servers/trt_llm_server/run.sh
 
 # Benchmark
-python benchmark/benchmark.py --server fastapi   # or vllm / triton / all
+python benchmark/benchmark.py --server fastapi   # or vllm / triton / sglang / trtllm
 ```
 
-Results land in `project-2-inference-server/results/` as CSV.
+Results land in `project-2-inference-server/results/` as CSV + PNG plots.
 
 ---
 
