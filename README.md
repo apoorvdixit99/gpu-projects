@@ -8,7 +8,7 @@ A collection of projects demonstrating GPU-accelerated ML inference, optimizatio
 
 ## Setup
 
-Projects 1, 3–7 share `.venv`. Project 2 uses a separate `.venv2` (WSL2, Docker).
+Projects 1, 3–7 share `.venv`. Project 2 uses a separate `.venv2` (WSL2, Docker). Project 9 uses a separate `.venv3` (conflicting `gluonts`/`numpy`/`pandas` pins).
 
 **Projects 1, 3–6 (Windows PowerShell):**
 ```powershell
@@ -22,6 +22,13 @@ cd path\to\Nvidia
 cd /mnt/c/Users/apoor/Desktop/projects/Nvidia/project-2-inference-server
 bash setup_wsl.sh
 source /mnt/c/Users/apoor/Desktop/projects/Nvidia/.venv2/bin/activate
+```
+
+**Project 9 (Windows PowerShell):**
+```powershell
+cd project-9-lag-llama-4-bit-quantization
+.\setup_lagllama.ps1
+..\.venv3\Scripts\Activate.ps1
 ```
 
 ---
@@ -221,3 +228,50 @@ A from-scratch scalar-valued autograd engine and neural network library, followi
 cd project-7-micrograd
 jupyter notebook micrograd.ipynb
 ```
+
+---
+
+### [Project 8 — Distributed Data Parallel (DDP)](project-8-ddp/)
+
+Fine-tunes BERT-base on SST-2 sentiment classification four ways, at progressively deeper layers, to show what DDP does under the hood versus what the API abstracts away.
+
+| Mode | Description |
+|---|---|
+| Base | Single process, single GPU, no DDP — the reference point |
+| Manual DDP | Multiple processes/replicas via `torch.multiprocessing`, gradients synced by hand with `dist.all_reduce` |
+| `torch.distributed` DDP | Production pattern — `DistributedSampler` + `nn.parallel.DistributedDataParallel` |
+| Manual DDP, from scratch | Same as manual DDP, but `torch.multiprocessing` and `torch.distributed` are also reimplemented on stdlib `multiprocessing` |
+
+**Skills:** `torch.distributed` process groups, manual gradient all-reduce, `DistributedSampler`, `DistributedDataParallel`, custom DDP comm hooks, gloo backend (NCCL is unavailable on Windows), hand-rolled IPC with `multiprocessing.Pipe`
+
+```powershell
+cd project-8-ddp
+python src/run_all.py           # all four modes, then comparison plots
+python src/run_all.py --train-subset 200 --epochs 1   # fast smoke test
+```
+
+Results land in `project-8-ddp/results/` as CSV + PNG plots (loss, accuracy, epoch time, throughput).
+
+---
+
+### [Project 9 — Lag-Llama 4-bit Quantization](project-9-lag-llama-4-bit-quantization/)
+
+Quantizes the pretrained Lag-Llama time series foundation model to 4-bit NF4 weights via `bitsandbytes`, and compares it against the FP32 checkpoint on real zero-shot forecasting workloads.
+
+| Precision | Description |
+|---|---|
+| FP32 | Pretrained Lag-Llama checkpoint, as released |
+| NF4 | Every `nn.Linear` swapped for `bitsandbytes.nn.Linear4bit` (weight-only, post-training) |
+
+**Metrics collected:** latency / throughput / peak GPU memory (context-length sweep) and zero-shot forecast accuracy — MASE, sMAPE, CRPS (approx.), MSIS — on `airpassengers`, `exchange_rate`, and `m4_hourly` (GluonTS built-in datasets)
+
+**Skills:** bitsandbytes NF4 quantization on a non-HuggingFace architecture, GluonTS `Evaluator`/`make_evaluation_predictions`, probabilistic forecasting evaluation, zero-shot time series benchmarking
+
+```powershell
+cd project-9-lag-llama-4-bit-quantization
+.\setup_lagllama.ps1                        # one-time: venv, repo clone, checkpoint download
+python src/run_benchmark.py                 # full run: latency + accuracy, both precisions
+python src/run_benchmark.py --no-accuracy   # latency/memory only (faster)
+```
+
+Results land in `project-9-lag-llama-4-bit-quantization/results/` as CSV + PNG plots.

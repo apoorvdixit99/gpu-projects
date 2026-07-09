@@ -1,6 +1,7 @@
 # Virtual environments
 .venv/
 .venv2/
+.venv3/
 
 # Python cache (matched at any depth)
 __pycache__/
@@ -34,3 +35,7 @@ build/
 .DS_Store
 
 theory/
+
+# Vendored external repos and downloaded checkpoints (project-9)
+project-9-lag-llama-4-bit-quantization/vendor/
+project-9-lag-llama-4-bit-quantization/checkpoints/*.ckpt
