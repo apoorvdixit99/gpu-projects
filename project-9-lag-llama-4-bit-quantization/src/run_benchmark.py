@@ -1,9 +1,12 @@
-"""Main entry point for the Lag-Llama FP32 vs NF4 benchmark.
+"""Main entry point for the Lag-Llama FP32 vs NF4 vs int4-ao benchmark.
 
 Usage examples
 --------------
-# Full run -- latency/throughput/memory + zero-shot accuracy, both precisions
+# Full run -- latency/throughput/memory + zero-shot accuracy, all three precisions
 python src/run_benchmark.py
+
+# Just the two int4 variants
+python src/run_benchmark.py --precisions nf4 int4-ao
 
 # Latency only, skip accuracy (faster, no dataset downloads beyond the test split)
 python src/run_benchmark.py --no-accuracy
@@ -42,7 +45,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Lag-Llama NF4 Quantization Benchmark")
-    p.add_argument("--precisions", nargs="+", default=["fp32", "nf4"], choices=["fp32", "nf4"])
+    p.add_argument("--precisions", nargs="+", default=["fp32", "nf4", "int4-ao"], choices=["fp32", "nf4", "int4-ao"])
     p.add_argument("--context-lengths", nargs="+", type=int, default=[32, 64, 128])
     p.add_argument("--prediction-length", type=int, default=24, help="Used for the latency benchmark only")
     p.add_argument("--num-latency-series", type=int, default=32, help="Series drawn from airpassengers-like synthetic subset for latency timing")

@@ -1,4 +1,4 @@
-"""Build a Lag-Llama zero-shot predictor in FP32 or NF4 (bitsandbytes).
+"""Build a Lag-Llama zero-shot predictor in FP32, NF4 (bitsandbytes), or int4-ao (torchao).
 
 Lag-Llama ships as a single Lightning checkpoint (`lag-llama.ckpt`) whose
 `hyper_parameters` blob records the exact architecture it was pretrained
@@ -24,9 +24,9 @@ if str(VENDOR_DIR) not in sys.path:
 
 from lag_llama.gluon.estimator import LagLlamaEstimator  # noqa: E402
 
-from quantize_utils import replace_linear_with_nf4  # noqa: E402
+from quantize_utils import quantize_int4_ao, replace_linear_with_nf4  # noqa: E402
 
-PRECISIONS = ("fp32", "nf4")
+PRECISIONS = ("fp32", "nf4", "int4-ao")
 
 # Two problems with loading lag-llama.ckpt directly, both patched here:
 #
@@ -59,6 +59,40 @@ def _load_full(*args, **kwargs):
 
 
 torch.load = _load_full
+
+
+def _cast_floats(obj, dtype: torch.dtype):
+    """Recursively cast floating-point tensors in a (possibly nested) tuple/list/dict."""
+    if isinstance(obj, torch.Tensor):
+        return obj.to(dtype) if obj.is_floating_point() else obj
+    if isinstance(obj, dict):
+        return {k: _cast_floats(v, dtype) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return type(obj)(_cast_floats(v, dtype) for v in obj)
+    return obj
+
+
+def _bridge_bf16_io(lightning_module) -> None:
+    """Bridge the fp32/bf16 boundary for the int4-ao (torchao) path.
+
+    The model's weights are bf16 (required by torchao's tile-packed int4
+    kernel), but two things must stay fp32: gluonts' `past_target` input (its
+    `robust` scaler calls `torch.nanquantile`, which bf16 doesn't support) and
+    the final output (gluonts' `predict_to_numpy` calls `.cpu().numpy()`,
+    which bf16 doesn't support either). So the cast to bf16 happens exactly at
+    `transformer.wte`, the model's actual entry point *after* scaling -- not
+    at the outer `LightningModule.forward()` -- and the cast back to fp32
+    happens on the overall output.
+    """
+
+    def _wte_pre_hook(_module, args, kwargs):
+        return _cast_floats(args, torch.bfloat16), _cast_floats(kwargs, torch.bfloat16)
+
+    def _output_post_hook(_module, _args, _kwargs, output):
+        return _cast_floats(output, torch.float32)
+
+    lightning_module.model.transformer.wte.register_forward_pre_hook(_wte_pre_hook, with_kwargs=True)
+    lightning_module.register_forward_hook(_output_post_hook, with_kwargs=True)
 
 
 def build_predictor(
@@ -111,13 +145,23 @@ def build_predictor(
     )
 
     # create_lightning_module() now always loads onto CPU (see the torch.load
-    # patch above), so the model is moved to `device` here explicitly -- after
-    # NF4 quantization, if requested, since Linear4bit quantizes on the .to(device)
-    # call and must not be quantized from an already-cuda tensor.
+    # patch above), so the model is moved to `device` here explicitly. The two
+    # quantization libraries want the opposite ordering relative to that move:
+    # bitsandbytes' Linear4bit quantizes NF4 the moment its Params4bit is moved
+    # onto CUDA, so it must be applied before .to(device); torchao's tinygemm
+    # int4 packing instead expects to run on an already-CUDA-resident model, so
+    # it must be applied after.
     lightning_module = estimator.create_lightning_module()
     if precision == "nf4":
         lightning_module.model = replace_linear_with_nf4(lightning_module.model)
-    lightning_module.model.to(device)
+        lightning_module.model.to(device)
+    elif precision == "int4-ao":
+        # torchao's tile-packed int4 kernel only supports bfloat16 weights.
+        lightning_module.model.to(device).to(torch.bfloat16)
+        quantize_int4_ao(lightning_module.model)
+        _bridge_bf16_io(lightning_module)
+    else:
+        lightning_module.model.to(device)
 
     transformation = estimator.create_transformation()
     predictor = estimator.create_predictor(transformation, lightning_module)

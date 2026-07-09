@@ -256,21 +256,22 @@ Results land in `project-8-ddp/results/` as CSV + PNG plots (loss, accuracy, epo
 
 ### [Project 9 — Lag-Llama 4-bit Quantization](project-9-lag-llama-4-bit-quantization/)
 
-Quantizes the pretrained Lag-Llama time series foundation model to 4-bit NF4 weights via `bitsandbytes`, and compares it against the FP32 checkpoint on real zero-shot forecasting workloads.
+Quantizes the pretrained Lag-Llama time series foundation model to 4-bit weights two different ways — `bitsandbytes` NF4 and `torchao` int4 — and compares both against the FP32 checkpoint on real zero-shot forecasting workloads.
 
 | Precision | Description |
 |---|---|
 | FP32 | Pretrained Lag-Llama checkpoint, as released |
 | NF4 | Every `nn.Linear` swapped for `bitsandbytes.nn.Linear4bit` (weight-only, post-training) |
+| int4-ao | Whole model cast to bf16, then `torchao.quantization.quantize_` (`Int4WeightOnlyConfig`) applied — only `mlp.c_proj` is kernel-eligible on this architecture, the rest stays bf16 |
 
 **Metrics collected:** latency / throughput / peak GPU memory (context-length sweep) and zero-shot forecast accuracy — MASE, sMAPE, CRPS (approx.), MSIS — on `airpassengers`, `exchange_rate`, and `m4_hourly` (GluonTS built-in datasets)
 
-**Skills:** bitsandbytes NF4 quantization on a non-HuggingFace architecture, GluonTS `Evaluator`/`make_evaluation_predictions`, probabilistic forecasting evaluation, zero-shot time series benchmarking
+**Skills:** bitsandbytes NF4 and torchao int4 quantization on a non-HuggingFace architecture, dtype-boundary bridging (bf16 kernels vs. fp32 data pipeline), GluonTS `Evaluator`/`make_evaluation_predictions`, probabilistic forecasting evaluation, zero-shot time series benchmarking
 
 ```powershell
 cd project-9-lag-llama-4-bit-quantization
 .\setup_lagllama.ps1                        # one-time: venv, repo clone, checkpoint download
-python src/run_benchmark.py                 # full run: latency + accuracy, both precisions
+python src/run_benchmark.py                 # full run: latency + accuracy, all three precisions
 python src/run_benchmark.py --no-accuracy   # latency/memory only (faster)
 ```
 

@@ -1,7 +1,0 @@
-backend,context_length,prediction_length,num_series,latency_ms_mean,latency_ms_std,latency_ms_p50,throughput_series_per_sec,gpu_memory_mb
-lagllama_fp32,32,24,1,205.99,12.08,204.49,4.855,66.3
-lagllama_fp32,64,24,1,310.63,1.92,309.72,3.219,92.2
-lagllama_fp32,128,24,1,564.18,3.43,562.94,1.772,143.7
-lagllama_nf4,32,24,1,306.34,3.86,305.79,3.264,58.3
-lagllama_nf4,64,24,1,323.56,6.22,321.17,3.091,84.3
-lagllama_nf4,128,24,1,572.66,9.37,571.9,1.746,135.7

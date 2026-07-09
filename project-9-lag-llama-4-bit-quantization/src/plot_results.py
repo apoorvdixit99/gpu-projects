@@ -1,11 +1,11 @@
 """Generate comparison charts from benchmark results.
 
 Produces PNGs in results/plots/:
-  latency-ms-mean.png   -- latency vs context length, FP32 vs NF4
+  latency-ms-mean.png   -- latency vs context length, FP32 vs NF4 vs int4-ao
   throughput.png        -- series/sec vs context length
   gpu-memory-mb.png     -- peak GPU memory vs context length
-  accuracy-mase.png     -- MASE per dataset, FP32 vs NF4
-  accuracy-crps.png     -- CRPS (approx) per dataset, FP32 vs NF4
+  accuracy-mase.png     -- MASE per dataset, FP32 vs NF4 vs int4-ao
+  accuracy-crps.png     -- CRPS (approx) per dataset, FP32 vs NF4 vs int4-ao
 """
 
 from __future__ import annotations
@@ -17,8 +17,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-_COLORS = {"lagllama_fp32": "#76b900", "lagllama_nf4": "#ff5722"}
-_LABELS = {"lagllama_fp32": "FP32", "lagllama_nf4": "NF4 (bitsandbytes)"}
+_COLORS = {"lagllama_fp32": "#76b900", "lagllama_nf4": "#ff5722", "lagllama_int4-ao": "#2a78d6"}
+_LABELS = {
+    "lagllama_fp32": "FP32",
+    "lagllama_nf4": "NF4 (bitsandbytes)",
+    "lagllama_int4-ao": "int4 (torchao)",
+}
 
 
 def _save(fig: plt.Figure, path: Path, name: str) -> None:
@@ -56,7 +60,7 @@ def _plot_accuracy_metric(acc_df: pd.DataFrame, metric: str, ylabel: str, plots_
     backends = [b for b in _COLORS if b in acc_df["backend"].values]
 
     x = np.arange(len(datasets))
-    width = 0.35
+    width = 0.8 / max(len(backends), 1)
 
     fig, ax = plt.subplots(figsize=(7.5, 4.5))
     for i, backend in enumerate(backends):

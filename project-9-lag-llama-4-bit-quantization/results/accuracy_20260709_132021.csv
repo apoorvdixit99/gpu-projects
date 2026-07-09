@@ -1,0 +1,10 @@
+dataset,backend,num_series,MASE,sMAPE,CRPS_approx,MSIS
+airpassengers,lagllama_fp32,1,2.8532,0.1899,0.1426,20.4039
+airpassengers,lagllama_nf4,1,1.5791,0.0978,0.0854,18.7744
+airpassengers,lagllama_int4-ao,1,2.7012,0.1779,0.134,11.7317
+exchange_rate,lagllama_fp32,40,2.0523,0.013,0.01,17.5205
+exchange_rate,lagllama_nf4,40,3.1655,0.0229,0.0196,28.6806
+exchange_rate,lagllama_int4-ao,40,2.0712,0.0133,0.01,20.7879
+m4_hourly,lagllama_fp32,50,4.0171,0.2303,0.1293,40.7576
+m4_hourly,lagllama_nf4,50,3.3719,0.1997,0.0903,41.7364
+m4_hourly,lagllama_int4-ao,50,3.587,0.2002,0.1111,38.6106
