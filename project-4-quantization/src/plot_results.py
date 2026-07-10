@@ -18,22 +18,28 @@ import matplotlib.ticker as ticker
 import pandas as pd
 
 _COLORS = {
-    "pytorch_fp32": "#a8d86e",   # light green
-    "pytorch_fp16": "#76b900",   # NVIDIA green
-    "quanto_int8":  "#2196f3",   # blue
-    "quanto_int4":  "#ff5722",   # orange-red
+    "pytorch_fp32":  "#a8d86e",   # light green
+    "pytorch_fp16":  "#76b900",   # NVIDIA green
+    "quanto_int8":   "#2196f3",   # blue
+    "quanto_int4":   "#ff5722",   # orange-red
+    "torchao_nvfp4": "#9c27b0",   # purple
+    "torchao_mxfp8": "#00bcd4",   # cyan
 }
 _MARKERS = {
-    "pytorch_fp32": "s",
-    "pytorch_fp16": "o",
-    "quanto_int8":  "^",
-    "quanto_int4":  "D",
+    "pytorch_fp32":  "s",
+    "pytorch_fp16":  "o",
+    "quanto_int8":   "^",
+    "quanto_int4":   "D",
+    "torchao_nvfp4": "P",
+    "torchao_mxfp8": "X",
 }
 _LABELS = {
-    "pytorch_fp32": "FP32",
-    "pytorch_fp16": "FP16",
-    "quanto_int8":  "INT8 (quanto)",
-    "quanto_int4":  "INT4 (quanto)",
+    "pytorch_fp32":  "FP32",
+    "pytorch_fp16":  "FP16",
+    "quanto_int8":   "INT8 (quanto)",
+    "quanto_int4":   "INT4 (quanto)",
+    "torchao_nvfp4": "NVFP4 (torchao, sw-emu)",
+    "torchao_mxfp8": "MXFP8 (torchao, sw-emu)",
 }
 
 

@@ -4,3 +4,4 @@
 
 # Quantization
 optimum-quanto>=0.2.0
+torchao>=0.17.0

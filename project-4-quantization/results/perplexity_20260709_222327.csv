@@ -1,0 +1,6 @@
+backend,perplexity
+pytorch_fp32,38.713
+pytorch_fp16,38.6421
+quanto_int8,41.5322
+quanto_int4,1575.9192
+torchao_nvfp4,40.6177

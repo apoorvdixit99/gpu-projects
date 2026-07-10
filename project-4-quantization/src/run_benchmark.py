@@ -2,11 +2,12 @@
 
 Usage examples
 --------------
-# Full run -- all four precisions, benchmark + perplexity
+# Full run -- all six precisions, benchmark + perplexity
 python src/run_benchmark.py
 
 # Subset of precisions
 python src/run_benchmark.py --precisions fp32 fp16
+python src/run_benchmark.py --precisions nvfp4 mxfp8
 
 # Custom sweep
 python src/run_benchmark.py --batch-sizes 1 8 32 --seq-lens 128 256 --iterations 50
@@ -36,10 +37,12 @@ PLOTS_DIR   = RESULTS_DIR / "plots"
 sys.path.insert(0, str(Path(__file__).parent))
 
 _PRECISION_MODULES = {
-    "fp32": "bench_fp32",
-    "fp16": "bench_fp16",
-    "int8": "bench_int8",
-    "int4": "bench_int4",
+    "fp32":  "bench_fp32",
+    "fp16":  "bench_fp16",
+    "int8":  "bench_int8",
+    "int4":  "bench_int4",
+    "nvfp4": "bench_nvfp4",
+    "mxfp8": "bench_mxfp8",
 }
 
 
@@ -47,9 +50,9 @@ def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="GPT-2 Quantization Benchmark")
     p.add_argument(
         "--precisions", nargs="+",
-        default=["fp32", "fp16", "int8", "int4"],
+        default=["fp32", "fp16", "int8", "int4", "nvfp4", "mxfp8"],
         choices=list(_PRECISION_MODULES),
-        help="Precision levels to benchmark (default: all four)",
+        help="Precision levels to benchmark (default: all six)",
     )
     p.add_argument("--batch-sizes", nargs="+", type=int, default=[1, 4, 8, 16])
     p.add_argument("--seq-lens",    nargs="+", type=int, default=[64, 128, 256])
@@ -72,6 +75,8 @@ def main() -> None:
 
     print(f"\nDevice      : {torch.cuda.get_device_name(0)}")
     print(f"Precisions  : {args.precisions}")
+    if any(p in args.precisions for p in ("nvfp4", "mxfp8")):
+        print("Note        : nvfp4 / mxfp8 run via software emulation on Ada Lovelace")
     print(f"Batch sizes : {args.batch_sizes}")
     print(f"Seq lengths : {args.seq_lens}")
     print(f"Warmup      : {args.warmup}   Iterations : {args.iterations}")
@@ -92,16 +97,19 @@ def main() -> None:
         all_perf.extend(rows)
 
         # -- Perplexity -------------------------------------------------------
-        if not args.no_perplexity:
+        if not args.no_perplexity and rows:
             from measure_perplexity import measure_perplexity
             print(f"\n--- {precision.upper()} Perplexity ---")
-            model = mod.load_model(torch.device("cuda"))
-            ppl   = measure_perplexity(model, tokenizer)
-            backend = rows[0]["backend"] if rows else precision
-            print(f"  Perplexity [{backend}]: {ppl:.4f}")
-            all_ppl.append({"backend": backend, "perplexity": round(ppl, 4)})
-            del model
-            torch.cuda.empty_cache()
+            try:
+                model = mod.load_model(torch.device("cuda"))
+                ppl   = measure_perplexity(model, tokenizer)
+                backend = rows[0]["backend"]
+                print(f"  Perplexity [{backend}]: {ppl:.4f}")
+                all_ppl.append({"backend": backend, "perplexity": round(ppl, 4)})
+                del model
+                torch.cuda.empty_cache()
+            except RuntimeError as e:
+                print(f"  SKIPPED perplexity [{precision}]: {e}")
 
     # -- Save results ---------------------------------------------------------
     if not all_perf:
