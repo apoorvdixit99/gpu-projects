@@ -30,7 +30,10 @@ def build(
     seq_lens = seq_lens or [64, 128, 256]
 
     if onnx_path is None:
-        onnx_path = str(MODELS_DIR / "gpt2.onnx")
+        # Use the ONNX file that matches the requested precision so TRT reads
+        # native-precision weights rather than converting at build time.
+        onnx_tag = "fp16" if fp16 else "fp32"
+        onnx_path = str(MODELS_DIR / f"gpt2_{onnx_tag}.onnx")
     if engine_path is None:
         tag = "fp16" if fp16 else "fp32"
         engine_path = str(MODELS_DIR / f"gpt2_{tag}.trt")
@@ -64,11 +67,6 @@ def build(
         raise RuntimeError("ONNX parse failed:\n" + "\n".join(errors))
 
     config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, workspace_gb << 30)
-
-    if fp16:
-        # BuilderFlag.FP16 was removed in TRT 10.x; precision is now chosen
-        # automatically. On Ada/Ampere hardware TRT selects FP16 by default.
-        print("FP16 requested — TRT 10.x selects precision automatically on capable hardware.")
 
     profile = builder.create_optimization_profile()
     for tensor_name in ("input_ids", "attention_mask"):

@@ -85,7 +85,7 @@ def benchmark(
             throughput = (bs * seq_len) / (mean_ms / 1_000)
 
             row = {
-                "backend": "onnxruntime",
+                "backend": "onnxruntime_fp16",
                 "batch_size": bs,
                 "seq_len": seq_len,
                 "latency_ms_mean": round(mean_ms, 3),

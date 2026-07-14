@@ -45,7 +45,7 @@ Benchmark GPT-2 (124M) inference across four backends and measure the real-world
 | PyTorch | FP16 | Tensor core path |
 | PyTorch + SDPA | FP16 | Flash Attention via `attn_implementation="sdpa"` |
 | PyTorch + torch.compile | FP16 | CUDA graphs via `backend="cudagraphs"` (Triton-free) |
-| ONNX Runtime | FP16 | CUDAExecutionProvider |
+| ONNX Runtime | FP16 | CUDAExecutionProvider, FP16 ONNX weights |
 | TensorRT | FP16 | Compiled engine, dynamic batch |
 
 **Metrics collected:** latency (mean / p50 / p95 / p99), throughput (tokens/s), peak GPU memory

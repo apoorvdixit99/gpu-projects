@@ -60,25 +60,27 @@ def main() -> None:
     MODELS_DIR.mkdir(parents=True, exist_ok=True)
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
-    onnx_path   = MODELS_DIR / "gpt2.onnx"
-    trt_path    = MODELS_DIR / ("gpt2_fp16.trt" if args.fp16 else "gpt2_fp32.trt")
+    onnx_fp32_path = MODELS_DIR / "gpt2_fp32.onnx"
+    onnx_fp16_path = MODELS_DIR / "gpt2_fp16.onnx"
+    trt_path       = MODELS_DIR / ("gpt2_fp16.trt" if args.fp16 else "gpt2_fp32.trt")
 
     # ── Model export / engine build ──────────────────────────────────────────
-    needs_onnx = "onnx" in args.backends or "tensorrt" in args.backends
-    if needs_onnx and (args.export or not onnx_path.exists()):
-        print("\n=== Exporting GPT-2 → ONNX ===")
-        from export_onnx import export
-        export(str(onnx_path))
+    if "onnx" in args.backends or "tensorrt" in args.backends:
+        if args.export or not onnx_fp16_path.exists():
+            print("\n=== Exporting GPT-2 → ONNX (FP16) ===")
+            from export_onnx import export
+            export(str(onnx_fp16_path), fp16=True)
 
-    if "tensorrt" in args.backends and (args.export or not trt_path.exists()):
-        print("\n=== Building TensorRT engine ===")
-        from build_trt import build
-        build(
-            str(onnx_path), str(trt_path),
-            fp16=args.fp16,
-            batch_sizes=args.batch_sizes,
-            seq_lens=args.seq_lens,
-        )
+    if "tensorrt" in args.backends:
+        if args.export or not trt_path.exists():
+            print("\n=== Building TensorRT engine ===")
+            from build_trt import build
+            build(
+                str(onnx_fp16_path), str(trt_path),
+                fp16=args.fp16,
+                batch_sizes=args.batch_sizes,
+                seq_lens=args.seq_lens,
+            )
 
     # ── Benchmarks ───────────────────────────────────────────────────────────
     all_results: list[dict] = []
@@ -115,7 +117,7 @@ def main() -> None:
         print("\n=== ONNX Runtime Benchmark ===")
         from bench_onnx import benchmark
         all_results.extend(
-            benchmark(str(onnx_path), args.batch_sizes, args.seq_lens, args.warmup, args.iterations)
+            benchmark(str(onnx_fp16_path), args.batch_sizes, args.seq_lens, args.warmup, args.iterations)
         )
 
     if "tensorrt" in args.backends:

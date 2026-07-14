@@ -37,8 +37,8 @@ Same as the baseline but loaded with `attn_implementation="sdpa"`, which routes 
 ### PyTorch FP16 + torch.compile
 The FP16 model wrapped with `torch.compile(model, backend="cudagraphs")`. TorchDynamo traces the computation graph and captures it as a CUDA graph, which is replayed on every subsequent call — eliminating per-kernel Python launch overhead so the GPU runs a single pre-recorded stream with minimal CPU involvement. The `cudagraphs` backend is used instead of the default `inductor` because Triton is not available on Windows. Graph capture happens on the first forward call for each unique input shape and is absorbed by the warmup loop.
 
-### ONNX Runtime (CUDAExecutionProvider)
-The model is exported to ONNX opset 18 using PyTorch's dynamo-based exporter, then loaded into an ONNX Runtime `InferenceSession` with `CUDAExecutionProvider`. ORT applies its own graph optimizations (op fusion, constant folding) independently of TensorRT.
+### ONNX Runtime FP16 (CUDAExecutionProvider)
+The model is exported to ONNX opset 18 in FP16 (weights cast via `model.half()` before export), then loaded into an ONNX Runtime `InferenceSession` with `CUDAExecutionProvider`. ORT applies its own graph optimizations (op fusion, constant folding) independently of TensorRT.
 
 ### TensorRT FP16
 The ONNX model is compiled into a TensorRT engine at startup using `build_trt.py`. The engine is built with an optimization profile covering the full benchmark sweep (min/opt/max shapes), allowing TRT to tune kernels for the expected input range. At inference time, device buffers are allocated as PyTorch CUDA tensors and their raw pointers are passed directly to the TRT execution context — no pycuda or cuda-python dependency needed.

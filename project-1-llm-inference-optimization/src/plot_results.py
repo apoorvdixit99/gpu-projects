@@ -14,7 +14,8 @@ _BACKEND_COLORS = {
     "pytorch_sdpa_fp32":    "#80deea",
     "pytorch_compile_fp16": "#9c27b0",   # purple
     "pytorch_compile_fp32": "#ce93d8",
-    "onnxruntime":          "#2196f3",   # blue
+    "onnxruntime_fp16":     "#2196f3",   # blue
+    "onnxruntime_fp32":     "#90caf9",
     "tensorrt_fp16":        "#ff5722",   # orange-red
 }
 _MARKERS = {
@@ -24,7 +25,8 @@ _MARKERS = {
     "pytorch_sdpa_fp32":    "p",
     "pytorch_compile_fp16": "*",
     "pytorch_compile_fp32": "h",
-    "onnxruntime":          "^",
+    "onnxruntime_fp16":     "^",
+    "onnxruntime_fp32":     "v",
     "tensorrt_fp16":        "D",
 }
 

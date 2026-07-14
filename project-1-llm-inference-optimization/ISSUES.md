@@ -370,6 +370,34 @@ parser.parse_from_file(onnx_path)
 
 ---
 
+## Issue 19 — TRT engine was built from FP32 ONNX; `BuilderFlag.FP16` and per-layer precision APIs removed in TRT 11.x
+
+**Symptom**
+`gpt2_fp16.trt` weighed 623 MB — larger than the raw FP32 ONNX weights (474 MB). A genuine FP16 engine would be smaller, not larger.
+
+**Root cause**
+Two compounding problems:
+1. `export_onnx.py` exported the model in FP32 (no `.half()` call). TRT therefore read FP32 weights and built a FP32 engine regardless of what precision flags were set.
+2. `BuilderFlag.FP16` does not exist in TRT 11.1.0.106. Per-layer precision control via `ILayer.precision` and `ILayer.set_output_type` is also absent from this version. There is no way to instruct TRT to downcast weights at engine-build time.
+
+Confirmed by inspecting available `BuilderFlag` entries:
+```python
+[f for f in dir(trt.BuilderFlag) if not f.startswith('_')]
+# No 'FP16', 'BF16', 'FP8', 'PREFER_PRECISION_CONSTRAINTS', etc.
+```
+
+**Fix**
+Export a separate FP16 ONNX by calling `.half()` on the model before export, and point the TRT builder at that file. TRT then reads native FP16 weights and builds a true FP16 engine with no precision flags needed.
+
+Changes:
+- `export_onnx.py`: added `fp16=False` parameter; when `True` calls `base.half()` and saves to `gpt2_fp16.onnx`.
+- `build_trt.py`: reads `gpt2_fp16.onnx` (not `gpt2.onnx`) when `fp16=True`.
+- `run_benchmark.py`: exports both `gpt2_fp32.onnx` (for ORT) and `gpt2_fp16.onnx` (for TRT) on `--export`.
+
+The stale `gpt2.onnx` / `gpt2_fp16.trt` must be deleted and `--export` re-run.
+
+---
+
 ## Issue 17 — `torch.compile` crashes: Triton not available on Windows
 
 **Error**

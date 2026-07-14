@@ -27,14 +27,17 @@ class _GPT2Wrapper(torch.nn.Module):
         ).logits
 
 
-def export(output_path: str | None = None, opset: int = 18) -> str:
+def export(output_path: str | None = None, opset: int = 18, fp16: bool = False) -> str:
     """Download GPT-2, wrap it, and export to ONNX. Returns the saved file path."""
     if output_path is None:
         MODELS_DIR.mkdir(parents=True, exist_ok=True)
-        output_path = str(MODELS_DIR / "gpt2.onnx")
+        tag = "fp16" if fp16 else "fp32"
+        output_path = str(MODELS_DIR / f"gpt2_{tag}.onnx")
 
-    print("Loading GPT-2 (gpt2) from HuggingFace …")
+    print(f"Loading GPT-2 (gpt2) from HuggingFace [{'FP16' if fp16 else 'FP32'}] …")
     base = GPT2LMHeadModel.from_pretrained("gpt2")
+    if fp16:
+        base = base.half()
     model = _GPT2Wrapper(base).cuda().eval()
 
     dummy_ids = torch.randint(0, 50257, (1, 128), dtype=torch.long, device="cuda")
