@@ -101,16 +101,16 @@ def main() -> None:
 
     if "pytorch_sdpa" in args.backends:
         print("\n=== PyTorch SDPA Benchmark ===")
-        from bench_pytorch_sdpa import benchmark
+        from bench_pytorch import benchmark
         all_results.extend(
-            benchmark(args.batch_sizes, args.seq_lens, args.fp16, args.warmup, args.iterations)
+            benchmark(args.batch_sizes, args.seq_lens, args.fp16, args.warmup, args.iterations, mode="sdpa")
         )
 
     if "pytorch_compile" in args.backends:
         print("\n=== PyTorch torch.compile Benchmark ===")
-        from bench_pytorch_compile import benchmark
+        from bench_pytorch import benchmark
         all_results.extend(
-            benchmark(args.batch_sizes, args.seq_lens, args.fp16, args.warmup, args.iterations)
+            benchmark(args.batch_sizes, args.seq_lens, args.fp16, args.warmup, args.iterations, mode="compile")
         )
 
     if "onnx" in args.backends:

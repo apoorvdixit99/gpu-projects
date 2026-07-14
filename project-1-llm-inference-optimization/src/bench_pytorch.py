@@ -1,10 +1,20 @@
-"""PyTorch FP16 inference benchmark for GPT-2."""
+"""PyTorch inference benchmark for GPT-2.
+
+Three variants selected by the *mode* parameter:
+
+  "eager"   – standard autograd, no kernel fusion (FP32 or FP16)
+  "sdpa"    – Flash Attention via attn_implementation="sdpa"
+  "compile" – CUDA-graph replay via torch.compile(backend="cudagraphs")
+              Works on Windows; does not require Triton.
+"""
 
 from __future__ import annotations
 
 import numpy as np
 import torch
 from transformers import GPT2LMHeadModel
+
+_MODES = ("eager", "sdpa", "compile")
 
 
 def _time_fn(fn, warmup: int, iterations: int) -> np.ndarray:
@@ -33,27 +43,42 @@ def benchmark(
     fp16: bool = True,
     warmup: int = 10,
     iterations: int = 100,
+    mode: str = "eager",
 ) -> list[dict]:
+    if mode not in _MODES:
+        raise ValueError(f"mode must be one of {_MODES}, got {mode!r}")
+
     device = torch.device("cuda")
-    tag = "pytorch_fp16" if fp16 else "pytorch_fp32"
+    precision = "fp16" if fp16 else "fp32"
+    prefix = "pytorch" if mode == "eager" else f"pytorch_{mode}"
+    tag = f"{prefix}_{precision}"
     print(f"Loading GPT-2 [{tag}] …")
 
-    model = GPT2LMHeadModel.from_pretrained("gpt2").eval().to(device)
+    load_kwargs = {"attn_implementation": "sdpa"} if mode == "sdpa" else {}
+    base = GPT2LMHeadModel.from_pretrained("gpt2", **load_kwargs).eval().to(device)
     if fp16:
-        model = model.half()
+        base = base.half()
 
     results = []
 
     for bs in batch_sizes:
         for seq_len in seq_lens:
-            ids = torch.randint(0, 50257, (bs, seq_len), dtype=torch.long, device=device)
+            ids  = torch.randint(0, 50257, (bs, seq_len), dtype=torch.long, device=device)
             mask = torch.ones(bs, seq_len, dtype=torch.long, device=device)
+
+            # CUDA graphs capture a static graph for a fixed input shape.
+            # Reset dynamo state and create a fresh compiled wrapper per shape
+            # so graphs from previous shapes don't carry over.
+            if mode == "compile":
+                torch._dynamo.reset()
+                model = torch.compile(base, backend="cudagraphs")
+            else:
+                model = base
 
             def fn():
                 with torch.no_grad():
                     model(input_ids=ids, attention_mask=mask, use_cache=False)
 
-            # Warm the model into cache, then measure peak memory over one pass.
             for _ in range(5):
                 fn()
             torch.cuda.synchronize()
